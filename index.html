@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>星渊回响 · Echoes of the Starfall</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b141a'/%3E%3Cpath d='M32 8l6 18 18 6-18 6-6 18-6-18-18-6 18-6z' fill='%23e9cf95'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="gameCanvas" aria-label="星渊回响游戏画面"></canvas>
+  <div id="cinemaBars" aria-hidden="true"><i></i><i></i></div>
+
+  <div id="hud" class="hidden">
+    <div class="minimap-panel">
+      <div class="minimap-ring">
+        <canvas id="miniMap" width="256" height="256"></canvas>
+        <span class="compass n">北</span>
+        <span class="compass e">东</span>
+        <span class="compass s">南</span>
+        <span class="compass w">西</span>
+      </div>
+      <div class="minimap-meta">
+        <span id="regionName">风起原野</span>
+        <span id="clockText">09:30</span>
+      </div>
+    </div>
+
+    <div class="quest-panel" id="questPanel">
+      <div class="quest-kicker"><i></i>主线任务</div>
+      <h3 id="questTitle">星陨之约</h3>
+      <p id="questObjective">前往风起驿站，寻找守林人「岚」。</p>
+      <div class="quest-progress" id="questProgress"></div>
+    </div>
+
+    <div class="party" id="party"></div>
+
+    <div class="player-hud">
+      <div class="char-line">
+        <span class="char-element" id="charElement">风</span>
+        <span id="charName">风羽·翎</span>
+        <span class="char-level" id="charLevel">Lv.1</span>
+      </div>
+      <div class="hp-shell">
+        <div class="hp-fill" id="hpFill"></div>
+        <div class="hp-text" id="hpText">1000 / 1000</div>
+      </div>
+      <div class="stamina-shell"><div class="stamina-fill" id="staminaFill"></div></div>
+      <div class="status-row" id="statusRow"></div>
+    </div>
+
+    <div class="skill-dock">
+      <div class="skill" id="skillE" title="元素战技">
+        <div class="skill-cd" id="skillECd"></div>
+        <div class="skill-glyph">E</div>
+        <div class="skill-name" id="skillEName">逐风</div>
+        <div class="skill-timer" id="skillETimer"></div>
+      </div>
+      <div class="skill burst" id="skillQ" title="元素爆发">
+        <div class="skill-cd" id="skillQCd"></div>
+        <div class="skill-glyph">Q</div>
+        <div class="skill-name" id="skillQName">风息之舞</div>
+        <div class="skill-timer" id="skillQTimer"></div>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button class="icon-btn" id="btnMap" title="地图 (M)"><span class="icon icon-map"></span><em>地图</em></button>
+      <button class="icon-btn" id="btnHelp" title="操作说明 (H)"><span class="icon icon-help">?</span><em>指引</em></button>
+      <button class="icon-btn" id="btnSound" title="声音"><span class="icon icon-sound"></span><em>声音</em></button>
+      <button class="icon-btn" id="btnPause" title="暂停 (Esc)"><span class="icon icon-pause"></span><em>暂停</em></button>
+    </div>
+
+    <div class="world-counters">
+      <div class="counter"><span class="mora-icon"></span><b id="moraCount">0</b></div>
+      <div class="counter"><span class="shard-icon"></span><b id="shardCount">0 / 3</b></div>
+    </div>
+
+    <div id="bossBar" class="boss-bar hidden">
+      <div class="boss-title"><span id="bossName">深渊咏者 · 渊火</span><span id="bossLevel">Lv.6</span></div>
+      <div class="boss-shell"><div class="boss-fill" id="bossFill"></div><div class="boss-ghost" id="bossGhost"></div></div>
+      <div class="boss-phase" id="bossPhase">焚天之相</div>
+    </div>
+
+    <div id="interactPrompt" class="interact-prompt hidden">
+      <span class="key">F</span><span id="interactText">调查</span>
+    </div>
+
+    <div id="toastStack" class="toast-stack"></div>
+    <div id="objectiveBanner" class="objective-banner hidden">
+      <div class="ob-ornament"></div>
+      <div class="ob-label">任务更新</div>
+      <div class="ob-title" id="obTitle"></div>
+      <div class="ob-sub" id="obSub"></div>
+    </div>
+    <div id="levelBanner" class="level-banner hidden">
+      <div class="level-rays"></div>
+      <div class="level-label">冒险等阶提升</div>
+      <div class="level-num" id="levelNum">Lv.2</div>
+    </div>
+    <div id="reticle" class="reticle hidden"></div>
+  </div>
+
+  <div id="startScreen" class="screen start-screen">
+    <div class="start-vignette"></div>
+    <div class="start-content">
+      <div class="start-kicker"><span></span>原创开放世界动作 RPG<span></span></div>
+      <h1 class="game-title">星渊回响</h1>
+      <div class="game-subtitle">E C H O E S &nbsp; O F &nbsp; T H E &nbsp; S T A R F A L L</div>
+      <div class="title-rule"><i></i><b>✦</b><i></i></div>
+      <p class="start-blurb">群星坠入大地，风与火在水面上写下回声。<br>提剑启程，去寻回散落在世界尽头的三枚星辉。</p>
+      <div class="start-actions">
+        <button class="primary-btn" id="btnNew"><span>启 程</span><small>NEW JOURNEY</small></button>
+        <button class="ghost-btn hidden" id="btnContinue"><span>继续旅程</span><small>CONTINUE</small></button>
+      </div>
+      <div class="start-controls">
+        <span><b>WASD</b> 移动</span><span><b>鼠标</b> 瞄准 / 攻击</span><span><b>E</b> 战技</span><span><b>Q</b> 爆发</span><span><b>1-4</b> 切换角色</span>
+      </div>
+      <button class="text-link" id="btnTutorial">操作与元素反应说明</button>
+    </div>
+    <div class="start-footer"><span>原创致敬之作 · 非商业演示</span><span>v1.0</span></div>
+  </div>
+
+  <div id="dialogueScreen" class="dialogue-screen hidden">
+    <div class="dialogue-click" id="dialogueAdvance"></div>
+    <div class="dialogue-panel">
+      <div class="dialogue-portrait"><canvas id="portraitCanvas" width="220" height="220"></canvas><div class="portrait-ring"></div></div>
+      <div class="dialogue-main">
+        <div class="dialogue-speaker" id="dialogueSpeaker">岚</div>
+        <div class="dialogue-text" id="dialogueText"></div>
+        <div class="dialogue-next"><span id="dialogueHint">点击继续</span><i></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="mapScreen" class="screen overlay-screen hidden">
+    <div class="overlay-head"><div><span class="eyebrow">提瓦特手绘舆图</span><h2>星落之境</h2></div><button class="round-close" data-close="map">×</button></div>
+    <div class="map-layout">
+      <div class="map-frame">
+        <canvas id="worldMap" width="1100" height="1100"></canvas>
+        <div class="map-compass"><span>北</span><i></i></div>
+      </div>
+      <aside class="map-side">
+        <h3>区域</h3>
+        <ul class="region-list" id="regionList">
+          <li><i style="--c:#7fd3b0"></i><div><b>风起原野</b><small>微风与麦浪</small></div></li>
+          <li><i style="--c:#4b8a68"></i><div><b>风语林</b><small>低语的古木</small></div></li>
+          <li><i style="--c:#d78a50"></i><div><b>燃霞坡</b><small>永燃的秋色</small></div></li>
+          <li><i style="--c:#5a9dbb"></i><div><b>镜湖</b><small>倒映星空的水面</small></div></li>
+          <li><i style="--c:#8f7ca6"></i><div><b>沉星遗迹</b><small>被封印的旧日王座</small></div></li>
+        </ul>
+        <div class="map-legend">
+          <h3>图例</h3>
+          <div><span class="lg gold"></span>当前目标</div>
+          <div><span class="lg teal"></span>星辉祭坛</div>
+          <div><span class="lg blue"></span>人物</div>
+          <div><span class="lg orange"></span>宝箱</div>
+        </div>
+        <div class="map-tip">按 <b>M</b> 关闭地图</div>
+      </aside>
+    </div>
+  </div>
+
+  <div id="helpScreen" class="screen overlay-screen hidden">
+    <div class="overlay-head"><div><span class="eyebrow">冒险者手记</span><h2>操作与元素反应</h2></div><button class="round-close" data-close="help">×</button></div>
+    <div class="help-grid">
+      <section class="help-card">
+        <h3>行走与战斗</h3>
+        <div class="key-list">
+          <div><b>W A S D</b><span>移动</span></div>
+          <div><b>鼠标</b><span>瞄准方向</span></div>
+          <div><b>左键 / J</b><span>普通攻击（可按住）</span></div>
+          <div><b>空格</b><span>闪避 · 短暂无敌</span></div>
+          <div><b>Shift</b><span>冲刺（消耗体力）</span></div>
+          <div><b>E</b><span>元素战技</span></div>
+          <div><b>Q</b><span>元素爆发（能量满时）</span></div>
+          <div><b>1 - 4</b><span>切换队伍角色</span></div>
+          <div><b>F</b><span>交互 / 开启宝箱</span></div>
+          <div><b>M / H / Esc</b><span>地图 / 指引 / 暂停</span></div>
+        </div>
+      </section>
+      <section class="help-card reactions">
+        <h3>元素反应</h3>
+        <p class="help-lead">用不同元素的攻击命中附着元素的敌人，可触发强力反应。</p>
+        <div class="reaction-row"><span class="el pyro">火</span><span class="plus">+</span><span class="el hydro">水</span><span class="arrow">→</span><b>蒸发</b><em>伤害大幅提高</em></div>
+        <div class="reaction-row"><span class="el pyro">火</span><span class="plus">+</span><span class="el electro">雷</span><span class="arrow">→</span><b>超载</b><em>范围爆炸并击退</em></div>
+        <div class="reaction-row"><span class="el hydro">水</span><span class="plus">+</span><span class="el electro">雷</span><span class="arrow">→</span><b>感电</b><em>向附近敌人传导</em></div>
+        <div class="reaction-row"><span class="el anemo">风</span><span class="plus">+</span><span class="el any">任意</span><span class="arrow">→</span><b>扩散</b><em>将元素传播开去</em></div>
+        <div class="help-note">提示：先用水元素打湿敌人，再切换火元素角色触发「蒸发」，是击败强敌的捷径。</div>
+      </section>
+      <section class="help-card">
+        <h3>队伍</h3>
+        <div class="roster-help">
+          <div><span class="el anemo">风</span><b>风羽·翎</b><em>近战 · 聚怪</em></div>
+          <div><span class="el pyro">火</span><b>烬羽·炎</b><em>大剑 · 爆发</em></div>
+          <div><span class="el hydro">水</span><b>潮音·汐</b><em>法器 · 治疗</em></div>
+          <div><span class="el electro">雷</span><b>雷弦·霆</b><em>弓箭 · 远程</em></div>
+        </div>
+        <div class="help-note">倒下的角色不会自动恢复。切换角色可让队友暂避锋芒，汐的「涌泉」能为全队回复生命。</div>
+      </section>
+      <section class="help-card">
+        <h3>旅途提示</h3>
+        <ul class="tips-list">
+          <li>沿着金色任务标记前进，发光的地标通常藏着故事。</li>
+          <li>星辉祭坛由守卫看守，先清理敌人才能取回碎片。</li>
+          <li>元素能量通过攻击与击败敌人积攒，切换角色独立计算。</li>
+          <li>靠近宝箱或人物时按 F 交互。迷路时按 M 查看地图。</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+
+  <div id="pauseScreen" class="screen overlay-screen hidden">
+    <div class="pause-inner">
+      <div class="eyebrow">旅途暂歇</div>
+      <h2>风会等你</h2>
+      <div class="pause-stats" id="pauseStats"></div>
+      <div class="pause-actions">
+        <button class="primary-btn small" id="btnResume"><span>继续旅程</span></button>
+        <button class="ghost-btn small" id="btnPauseMap"><span>查看地图</span></button>
+        <button class="ghost-btn small" id="btnPauseHelp"><span>操作说明</span></button>
+        <button class="ghost-btn small danger" id="btnRestart"><span>重新开始</span></button>
+      </div>
+      <p class="pause-foot">进度会自动保存到本机浏览器。</p>
+    </div>
+  </div>
+
+  <div id="endingScreen" class="screen overlay-screen hidden">
+    <div class="ending-inner">
+      <div class="ending-star">✦</div>
+      <div class="eyebrow">第一章</div>
+      <h2>星渊的回声</h2>
+      <p>渊火熄灭，星辉重新汇入长夜。<br>但深渊的低语并未远去——新的旅途，正在地平线外等待。</p>
+      <div class="ending-stats" id="endingStats"></div>
+      <button class="primary-btn small" id="btnEndingClose"><span>继续探索</span></button>
+    </div>
+  </div>
+
+  <div id="loadingScreen" class="screen loading-screen">
+    <div class="loading-mark">✦</div>
+    <div class="loading-text">正在铺开星落之境</div>
+    <div class="loading-track"><i id="loadingBar"></i></div>
+    <div class="loading-tip">风会记得每一个出发的人。</div>
+  </div>
+
+  <div id="damageFlash"></div>
+  <div id="healFlash"></div>
+</div>
+<script src="game.js"></script>
+</body>
+</html>
