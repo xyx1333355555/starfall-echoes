@@ -1,5 +1,23 @@
-# Starfall Echoes
+# 星渊回响 · Echoes of the Starfall
 
-Original Canvas action RPG.
+一个使用原生 Canvas 2D 编写的原创开放世界动作 RPG 演示。
 
-Play: https://xyx1333355555.github.io/starfall-echoes/
+## 在线试玩
+
+https://xyx1333355555.github.io/starfall-echoes/
+
+## 内容
+
+- 五片可探索区域：风起原野、风语林、燃霞坡、镜湖、沉星遗迹
+- 四名可切换角色：风 / 火 / 水 / 雷
+- 元素反应：蒸发、超载、感电、扩散
+- 主线任务、支线任务、Boss 战、宝箱、等级与自动存档
+- 小地图、世界地图、任务指引、昼夜变化、程序化音乐与音效
+
+## 操作
+
+`WASD` 移动 · 鼠标瞄准 · 左键/J 攻击 · `空格` 闪避 · `Shift` 冲刺 · `E` 战技 · `Q` 爆发 · `1-4` 切换角色 · `F` 交互 · `M` 地图 · `H` 指引 · `Esc` 暂停
+
+## 说明
+
+原创致敬之作，非商业演示。没有使用任何《原神》的素材、角色或音频。
